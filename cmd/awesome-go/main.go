@@ -2,15 +2,21 @@ package main
 
 import (
 	"awesome-go/internal/authentication"
+	"awesome-go/internal/configs"
 	"awesome-go/internal/controllers"
-	"log"
+	logger "awesome-go/internal/pkg"
+	"fmt"
 	"net/http"
+
+	"github.com/spf13/viper"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/gorilla/mux"
 )
 
 // HTTP will start http server
-func HTTP() error {
+func HTTP(port string) error {
 	router := mux.NewRouter()
 
 	if err := controllers.Register(router); err != nil {
@@ -21,13 +27,16 @@ func HTTP() error {
 		log.Fatalf("error initializing auth strategies: %v", err)
 	}
 
-	return http.ListenAndServe(":8080", router)
+	return http.ListenAndServe(port, router)
 }
 
 func main() {
-	log.Println("Go application is starting on http://localhost:8080")
+	configs.Init()
+	logger.Init()
 
+	log.Info("Starting go application on http://localhost:", viper.Get("port"))
 	if err := HTTP; err != nil {
-		log.Fatal(err())
+		port := fmt.Sprintf(":%s", viper.Get("port"))
+		log.Fatal(err(port))
 	}
 }
